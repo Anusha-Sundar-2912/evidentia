@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: evidentia-postgres
+    environment:
+      POSTGRES_DB: evidentia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - evidentia_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: evidentia-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  evidentia_postgres_data:

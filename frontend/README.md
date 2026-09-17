@@ -1,12 +1,10 @@
-# Evidentia frontend
+﻿# Evidentia frontend
 
-A React + TypeScript workspace built against the supplied FastAPI source. The backend and Docker files are unchanged. No API keys belong in Vite environment variables.
+Evidentia's React + TypeScript frontend provides the operational interface for evidence-grounded querying, knowledge ingestion, retrieval inspection, guardrails, evaluations, and system readiness.
 
-**Credential finding:** the supplied backend configuration contains a hardcoded Groq credential. Revoke it and use a replacement in your backend `.env`; remove the hardcoded default locally. Its value is deliberately not reproduced here. The deliverable contains only the new `frontend/` directory, so no backend credential is redistributed.
+API credentials and other secrets belong only in server-side environment variables. Never expose provider credentials through Vite environment variables.
 
-## Run with your existing backend (Windows / PowerShell)
-
-Copy this `frontend` directory into your existing Evidentia project. Keep your original `backend/.env`, virtual environment, uploads and database volumes. They were deliberately not included in the supplied ZIP.
+## Local development (Windows / PowerShell)
 
 Terminal 1, from your existing project root:
 
@@ -78,12 +76,12 @@ All paths below are relative to `/api/v1`.
 | Method | Endpoint                     | Request                                                                              |
 | ------ | ---------------------------- | ------------------------------------------------------------------------------------ |
 | POST   | `/documents/upload`          | Multipart field `file`; PDF or DOCX                                                  |
-| POST   | `/query/ask`                 | JSON `query`, `top_k` 1–10, optional `filters.filenames`, optional `conversation_id` |
+| POST   | `/query/ask`                 | JSON `query`, `top_k` 1-10, optional `filters.filenames`, optional `conversation_id` |
 | POST   | `/query/search/semantic`     | JSON `query`, `top_k`                                                                |
 | POST   | `/query/search/bm25`         | JSON `query`, `top_k`                                                                |
 | POST   | `/query/search/hybrid`       | JSON `query`, `top_k`                                                                |
-| POST   | `/evaluations/generate`      | URL query parameters `sample_size` 1–25 and `difficulty`                             |
-| POST   | `/evaluations/run-generated` | URL query parameters `sample_size` 1–25, `difficulty`, `top_k` 1–20                  |
+| POST   | `/evaluations/generate`      | URL query parameters `sample_size` 1-25 and `difficulty`                             |
+| POST   | `/evaluations/run-generated` | URL query parameters `sample_size` 1-25, `difficulty`, `top_k` 1-20                  |
 | GET    | `/health`                    | No parameters                                                                        |
 | GET    | `/ready`                     | No parameters                                                                        |
 
@@ -91,12 +89,12 @@ Evaluation difficulty values are `direct`, `paraphrase`, `deep_retrieval`. The f
 
 ## Honest capability boundaries
 
-1. **No document list/detail/delete API.** Knowledge shows confirmed upload receipts from this browser, with status explicitly labeled “at upload.” These are not live inventory. Local storage is keyed by API base URL; they can become stale if a backend is replaced at the same URL. Ask is not blocked when receipts are empty, because existing backend documents may be present. No fake fetch/list endpoint exists.
+1. **No document list/detail/delete API.** Knowledge shows confirmed upload receipts from this browser, with status explicitly labeled "at upload." These are not live inventory. Local storage is keyed by API base URL; they can become stale if a backend is replaced at the same URL. Ask is not blocked when receipts are empty, because existing backend documents may be present. No fake fetch/list endpoint exists.
 2. **No streaming, task IDs or progress endpoints.** Upload, query and evaluations use a general processing state with elapsed waiting time. No simulated parsing/retrieval/verification progress. Returning to a pending route restarts its visible timer; it does not restart the backend task. Refreshing the browser loses in-flight UI state; a backend task might still finish. Avoid resubmitting expensive work until you check the backend.
 3. **Ask does not expose passage text or original candidates.** Citations show exact returned filenames/pages/chunk IDs. Independent search can fetch real passages, but is explicitly labeled a separate request. It is never presented as the prior answer's candidate set.
 4. **Trace semantics.** `retrieved_chunk_count` counts final selected chunks in this implementation, not all pre-rerank candidates. The UI labels it accordingly. `original_query` is already sanitized by the backend. Candidate reorder animations change the display of actual returned rows; they do not pretend to replay unavailable intermediate ranking.
 5. **Groundedness is word overlap.** The production validator is a lexical heuristic, not semantic entailment or confidence. A correct refusal is valid with score 1.0 and no citations. The UI treats this as insufficient evidence, not a perfect-confidence answer.
-6. **Evaluation limitations.** Metrics are backend-returned, model-assisted judgments. The backend can return partial/zero-case runs; zero-case aggregates are hidden. Precision divides by the number of returned chunks, not always K. Recall is relative to the candidate pool judged relevant, not exhaustive document relevance. Retrieved passages are not included in the generated run response. Origin IDs, relevance grades, citations and claim judgments are exposed. “Generate questions only” does return originating evidence, but its dataset is separate from the fresh dataset generated by “Generate & evaluate.” No fake evaluation history or derived confidence score.
+6. **Evaluation limitations.** Metrics are backend-returned, model-assisted judgments. The backend can return partial/zero-case runs; zero-case aggregates are hidden. Precision divides by the number of returned chunks, not always K. Recall is relative to the candidate pool judged relevant, not exhaustive document relevance. Retrieved passages are not included in the generated run response. Origin IDs, relevance grades, citations and claim judgments are exposed. "Generate questions only" does return originating evidence, but its dataset is separate from the fresh dataset generated by "Generate & evaluate." No fake evaluation history or derived confidence score.
 7. **Readiness checks are narrow.** Health probes do not establish model, provider or vector-index health.
 8. **State retention.** Query text/results and evaluation reports are kept in memory for this tab session, not written to local storage. Only upload receipts (including filename metadata) persist locally. There is no server-side document inventory or frontend user/org concept.
 

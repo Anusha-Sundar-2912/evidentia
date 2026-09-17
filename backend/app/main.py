@@ -16,6 +16,7 @@ from app.api.routes.health import (
 from app.api.routes.query import (
     router as query_router,
 )
+from app.core.config import settings
 from app.core.database import Base, engine
 from app.core.exceptions import (
     LLMProviderError,
@@ -175,9 +176,7 @@ async def llm_provider_error_handler(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

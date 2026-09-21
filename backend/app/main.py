@@ -1,5 +1,3 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -24,12 +22,6 @@ from app.core.exceptions import (
     LLMUnavailableError,
 )
 from app.models import Chunk, Document
-from app.services.embeddings import (
-    get_embedding_model,
-)
-from app.services.reranker import (
-    get_reranker,
-)
 
 
 # ---------------------------------------------------------
@@ -42,51 +34,6 @@ Base.metadata.create_all(
 
 
 # ---------------------------------------------------------
-# Application lifespan
-# ---------------------------------------------------------
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Preload Evidentia's local ML models during startup.
-
-    This moves SentenceTransformer and CrossEncoder
-    initialization out of the first user request,
-    preventing large cold-start retrieval latency.
-    """
-
-    print(
-        "Evidentia: loading embedding model..."
-    )
-
-    get_embedding_model()
-
-    print(
-        "Evidentia: embedding model ready."
-    )
-
-    print(
-        "Evidentia: loading reranker model..."
-    )
-
-    get_reranker()
-
-    print(
-        "Evidentia: reranker model ready."
-    )
-
-    print(
-        "Evidentia: startup complete."
-    )
-
-    yield
-
-    print(
-        "Evidentia: shutting down."
-    )
-
-
-# ---------------------------------------------------------
 # FastAPI application
 # ---------------------------------------------------------
 
@@ -96,7 +43,6 @@ app = FastAPI(
         "Enterprise Knowledge Intelligence Engine"
     ),
     version="0.1.0",
-    lifespan=lifespan,
 )
 
 
@@ -115,7 +61,6 @@ async def llm_rate_limit_handler(
     Convert provider rate-limit failures into a clean
     HTTP 429 response instead of exposing a generic 500.
     """
-
     return JSONResponse(
         status_code=429,
         content={
@@ -137,7 +82,6 @@ async def llm_unavailable_handler(
     Represent temporary provider/network outages as
     HTTP 503 Service Unavailable.
     """
-
     return JSONResponse(
         status_code=503,
         content={
@@ -159,7 +103,6 @@ async def llm_provider_error_handler(
     Handle other upstream LLM failures without exposing
     provider-specific exception details.
     """
-
     return JSONResponse(
         status_code=502,
         content={
